@@ -1,0 +1,6 @@
+MATLAB: 9.12.0.1884302 (R2022a)
+PWD: C:\Users\ROG\Desktop\MATLAB设计GUI草稿箱\MATLAB_GUI2_GUIDE_Manual
+CalcPlatform: C:\Users\ROG\Desktop\MATLAB设计GUI草稿箱\MATLAB_GUI2_GUIDE_Manual\CalcPlatform.m
+CalcPlatform.fig: C:\Users\ROG\Desktop\MATLAB设计GUI草稿箱\MATLAB_GUI2_GUIDE_Manual\CalcPlatform.fig
+CalcPlatform 返回成功
+主窗口: Visible=on, WindowState=normal
