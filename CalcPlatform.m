@@ -632,13 +632,14 @@ end
 function tblData_CellEditCallback(hObject, eventdata, handles) %#ok<INUSD>
 d = get(hObject,'Data');
 if isempty(d), return; end
-handles = ensureHandles(hObject);
+handles = guidata(hObject);
 handles.data.x = d(:,1);
 handles.data.y = d(:,2);
 handles.data.y2 = d(:,3);
 handles.data.source = '表格手工编辑';
 guidata(hObject,handles);
 refreshDataTable(handles);
+updateCharts(handles);
 setStatus(handles,'表格数据已更新');
 end
 
@@ -683,10 +684,27 @@ end
 function refreshDataTable(handles)
 d = [handles.data.x(:), handles.data.y(:), handles.data.y2(:)];
 set(handles.tblData,'Data',d);
-set(handles.lblDataSource,'String',['数据源：' handles.data.source]);
-set(handles.lblDataInfo,'String',sprintf('样本数：%d   |   数据源：%s', ...
-    numel(handles.data.x),handles.data.source));
-set(handles.lblStatsSource,'String',['当前数据：' handles.data.source]);
+if isfield(handles,'lblDataSource') && isgraphics(handles.lblDataSource)
+    set(handles.lblDataSource,'String',['数据源：' handles.data.source]);
+end
+if isfield(handles,'lblDataInfo') && isgraphics(handles.lblDataInfo)
+    set(handles.lblDataInfo,'String',sprintf('样本数：%d   |   数据源：%s', ...
+        numel(handles.data.x),handles.data.source));
+end
+if isfield(handles,'lblStatsSource') && isgraphics(handles.lblStatsSource)
+    set(handles.lblStatsSource,'String',['当前数据：' handles.data.source]);
+end
+end
+
+function updateCharts(handles)
+% 数据变化后同步刷新统计表和二维图
+refreshStats(handles);
+if isfield(handles,'axStats') && isgraphics(handles.axStats)
+    drawStats(handles);
+end
+if isfield(handles,'axPlot2D') && isgraphics(handles.axPlot2D)
+    draw2D(handles);
+end
 end
 
 function vals = selectedColumn(handles)
@@ -846,6 +864,7 @@ y2 = 5*cos(x/4);
 handles.data = struct('x',x,'y',y,'y2',y2,'source','随机生成数据');
 guidata(hObject,handles);
 refreshDataTable(handles);
+updateCharts(handles);
 setStatus(handles,sprintf('已随机生成 %d 行数据',n));
 end
 
@@ -860,6 +879,7 @@ else
 end
 guidata(hObject,handles);
 refreshDataTable(handles);
+updateCharts(handles);
 setStatus(handles,'已添加一行数据');
 end
 
@@ -871,6 +891,7 @@ handles.data.y2(end) = [];
 handles.data.source = '手工删除数据';
 guidata(hObject,handles);
 refreshDataTable(handles);
+updateCharts(handles);
 setStatus(handles,'已删除最后一行数据');
 end
 
@@ -878,6 +899,7 @@ function dataClear(hObject,handles)
 handles.data = struct('x',zeros(0,1),'y',zeros(0,1),'y2',zeros(0,1),'source','空数据');
 guidata(hObject,handles);
 refreshDataTable(handles);
+updateCharts(handles);
 setStatus(handles,'数据已清空');
 end
 
@@ -902,8 +924,12 @@ setStatus(handles,sprintf('拟合完成，R² = %.4f',R.r2));
 end
 
 function draw2D(handles)
-x = handles.data.x(:); y = handles.data.y(:);
 ax = handles.axPlot2D; axes(ax); cla(ax);
+if isempty(handles.data.x)
+    title(ax,'暂无数据');
+    return;
+end
+x = handles.data.x(:); y = handles.data.y(:);
 items = get(handles.popPlot2D,'String'); idx = get(handles.popPlot2D,'Value');
 switch items{idx}
     case '折线图'
